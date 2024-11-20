@@ -5,7 +5,17 @@ const {
 } = require('react-native-reanimated/metro-config');
 
 const config = mergeConfig(getDefaultConfig(__dirname), {
-  /* your config */
+  transformer: {
+    getTransformOptions: async () => ({
+      transform: {
+        experimentalImportSupport: false,
+        inlineRequires: false,
+      },
+    }),
+  },
+  resolver: {
+    sourceExts: ['js', 'jsx', 'ts', 'tsx', 'svg','json','css'],
+  },
 });
 
 module.exports = wrapWithReanimatedMetroConfig(config);

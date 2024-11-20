@@ -1,4 +1,4 @@
-import {View, Text, StatusBar} from 'react-native';
+import {View, Text, StatusBar, Pressable} from 'react-native';
 import React from 'react';
 import './global.css';
 import {
@@ -11,6 +11,8 @@ import HomeNavigation from './components/home_navigation';
 import Detail from './screens/detail';
 import Compare from './screens/compare';
 import {name as appName} from './app.json';
+import {globalStore} from './utils/global';
+import {useShallow} from 'zustand/shallow';
 
 let Stack: any = createNativeStackNavigator();
 
@@ -23,6 +25,7 @@ const customTheme = {
 };
 
 export default function App() {
+  const values = globalStore(useShallow(state => state.values));
   return (
     <>
       <StatusBar barStyle={'dark-content'} backgroundColor={'#fff'} />
@@ -43,21 +46,29 @@ export default function App() {
           <Stack.Screen
             name="Detail"
             component={Detail}
-            options={{headerShown: true}}
+            options={{
+              headerTitle: values.item_detail
+                ? values.item_detail.name[0].toUpperCase() +
+                  values.item_detail.name.slice(1)
+                : '',
+              headerRight: () => (
+                <>
+                  {values.item_compare.length < 2 && (
+                    <View>
+                      <Pressable onPress={() => {
+                        // 
+                      }}>
+                        <Text className="self-center">ADD</Text>
+                      </Pressable>
+                    </View>
+                  )}
+                </>
+              ),
+              headerShown: true,
+            }}
           />
         </Stack.Navigator>
       </NavigationContainer>
     </>
   );
 }
-
-// import { View, Text } from 'react-native'
-// import React from 'react'
-
-// export default function App() {
-//   return (
-//     <View>
-//       <Text>App</Text>
-//     </View>
-//   )
-// }

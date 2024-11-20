@@ -29,7 +29,7 @@ export default function HomeNavigation() {
           headerLeft: () => (
             <View>
               <Image
-                style={styles.logo}
+                style={styles.imagesLogo}
                 source={{
                   uri: 'https://static.vecteezy.com/system/resources/previews/027/127/571/non_2x/pokemon-logo-pokemon-icon-transparent-free-png.png',
                 }}
