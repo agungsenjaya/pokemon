@@ -9,7 +9,7 @@ import {
 import React, {useEffect, useState} from 'react';
 import axios from 'axios';
 import {SvgUri} from 'react-native-svg';
-import {styles} from '../hook/global';
+import {getPokemonDetail, styles} from '../hook/global';
 import {globalStore} from '../utils/global';
 import {useShallow} from 'zustand/shallow';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -23,46 +23,42 @@ export default function Detail({...props}: any) {
   const [sprites, setSprites] = useState(false);
 
   const getData = async e => {
-    try {
-      const a = await axios.get(e).then(item => {
-        if (item.data) {
-          const a = {};
-          a.name = props.route.params.name;
-          a.sprites = item.data.sprites;
-          a.information = {
-            height: item.data.height,
-            weight: item.data.weight,
-            types: item.data.types,
-          };
-          a.stats = item.data.stats;
-          a.abilities = item.data.abilities;
-          setValues('item_detail', a);
-
-          const b = [];
-          item.data.stats.forEach(item => {
-            const c = {};
-            c.value = item.base_stat;
-            c.label = item.stat.name;
-            c.topLabelComponent = () => (
-              <Text style={{color: 'black'}}>{item.base_stat}</Text>
-            );
-            c.labelTextStyle = {
-              fontSize: 8,
-              textTransform: 'capitalize',
-            };
-            b.push(c);
-          });
-
-          setStats(b);
-        }
+    await getPokemonDetail(e).then(itemm => {
+      setValues('item_detail', itemm);
+      const b = [];
+      itemm.stats.forEach(item => {
+        const c = {};
+        c.value = item.base_stat;
+        c.label = item.stat.name;
+        c.topLabelComponent = () => (
+          <Text style={{color: 'black'}}>{item.base_stat}</Text>
+        );
+        c.labelTextStyle = {
+          fontSize: 8,
+          textTransform: 'capitalize',
+        };
+        b.push(c);
       });
-    } catch (error) {
-      console.log(error);
-    }
+
+      setStats(b);
+    });
   };
 
   useEffect(() => {
-    getData(props.route.params.url);
+    getData(props.route.params);
+  }, []);
+
+  useEffect(() => {
+    const a = values.item_compare;
+    const b = values.item_detail;
+    if (a && b) {
+      const c = a.find(itemm => itemm.name == props.route.params.name);
+      if (c) {
+        setValues('item_detail_compare', true);
+      }else{
+        setValues('item_detail_compare', false);
+      }
+    }
   }, []);
 
   return (
@@ -169,7 +165,7 @@ export default function Detail({...props}: any) {
               <BarChart
                 adjustToWidth
                 noOfSections={5}
-                barBorderRadius={100}
+                barBorderRadius={10}
                 hideYAxisText
                 frontColor="#fde047"
                 data={stats}

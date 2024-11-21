@@ -16,7 +16,7 @@ export default function Home({navigation}: any) {
       <View className="p-4 bg-yellow-200 flex flex-row justify-between">
         <Text className="uppercase text-sm">List Of Pokemon :</Text>
         <Text className="uppercase text-sm text-right font-medium">
-          Total : 0
+          Total : {values.item_total}
         </Text>
       </View>
       <ItemList />

@@ -67,6 +67,7 @@ export default function HomeNavigation() {
         options={{
           headerTitle: 'Compare',
           title: 'Compare',
+          headerShown:false,
           tabBarIcon: ({size, focused, color}) => {
             return (
               <Icon

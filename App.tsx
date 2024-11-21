@@ -1,5 +1,5 @@
 import {View, Text, StatusBar, Pressable} from 'react-native';
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import './global.css';
 import {
   DefaultTheme,
@@ -9,10 +9,10 @@ import {
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import HomeNavigation from './components/home_navigation';
 import Detail from './screens/detail';
-import Compare from './screens/compare';
-import {name as appName} from './app.json';
 import {globalStore} from './utils/global';
 import {useShallow} from 'zustand/shallow';
+import CompareDialog from './components/compare_dialog';
+import {getPokemonDetail} from './hook/global';
 
 let Stack: any = createNativeStackNavigator();
 
@@ -25,7 +25,28 @@ const customTheme = {
 };
 
 export default function App() {
-  const values = globalStore(useShallow(state => state.values));
+  const [values, setValues] = globalStore(
+    useShallow(state => [state.values, state.setValues]),
+  );
+
+  const handleItemAddCompare = () => {
+    const a = values.item_compare;
+    const b = a.find(itemm => itemm.name == values.item_detail.name);
+    if (b) {
+      //
+    } else {
+      setValues('item_compare', [...values.item_compare, values.item_detail]);
+      setValues('item_detail_compare', true);
+    }
+  };
+
+  const handleItemRemoveCompare = () => {
+    const a = values.item_compare;
+    const b = a.filter(itemm => itemm.name != values.item_detail.name);
+    setValues('item_compare', b);
+    setValues('item_detail_compare', false);
+  };
+
   return (
     <>
       <StatusBar barStyle={'dark-content'} backgroundColor={'#fff'} />
@@ -53,19 +74,56 @@ export default function App() {
                 : '',
               headerRight: () => (
                 <>
-                  {values.item_compare.length < 2 && (
+                  {values.item_compare.length < 2 ? (
                     <View>
-                      <Pressable onPress={() => {
-                        // 
-                      }}>
-                        <Text className="self-center">ADD</Text>
+                      <Pressable
+                        onPress={() => {
+                          if (!values.item_detail_compare) {
+                            handleItemAddCompare();
+                          } else {
+                            handleItemRemoveCompare();
+                          }
+                        }}>
+                        <Text className="self-center">
+                          {!values.item_detail_compare ? 'Compare' : 'Remove'}
+                        </Text>
                       </Pressable>
                     </View>
+                  ) : (
+                    <>
+                      {values.item_detail_compare && (
+                        <View>
+                          <Pressable
+                            onPress={() => {
+                              handleItemRemoveCompare();
+                            }}>
+                            <Text className="self-center">Remove</Text>
+                          </Pressable>
+                        </View>
+                      )}
+                    </>
                   )}
                 </>
               ),
               headerShown: true,
             }}
+          />
+          <Stack.Screen
+            name="CompareDialog"
+            component={CompareDialog}
+            options={({navigation}) => ({
+              title: 'Choose Pokemon',
+              headerShown: true,
+              // headerRight: () => (
+              //   <>
+              //     <View>
+              //       <Pressable onPress={() => navigation.navigate('Customer')}>
+              //         <Text className="text-white self-center">ADD</Text>
+              //       </Pressable>
+              //     </View>
+              //   </>
+              // ),
+            })}
           />
         </Stack.Navigator>
       </NavigationContainer>

@@ -8,12 +8,12 @@ import {
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import axios from 'axios';
-import {styles} from '../hook/global';
+import {getPokemonDetail, styles} from '../hook/global';
 import {globalStore} from '../utils/global';
 import {useShallow} from 'zustand/shallow';
-import { useNavigation } from '@react-navigation/native';
+import {useNavigation} from '@react-navigation/native';
 
-export default function ItemList() {
+export default function ItemList(props) {
   const navigation = useNavigation();
   const [values, setValues] = globalStore(
     useShallow(state => [state.values, state.setValues]),
@@ -28,11 +28,11 @@ export default function ItemList() {
     const distanceFromBottom =
       contentSize.height - contentOffset.y - Dimensions.get('window').height;
     if (distanceFromBottom < 100 && !loading && hasMore) {
-      getData();
+      getPokemonData();
     }
   };
 
-  const getData = async () => {
+  const getPokemonData = async () => {
     try {
       const a = await axios.get(values.url).then(item => {
         if (loading || !hasMore) return;
@@ -42,6 +42,7 @@ export default function ItemList() {
           setHasMore(item.data.results.length > 0);
           setPage(page + 1);
           setLoading(false);
+          setValues('item_total', item.data.count);
         }
         if (item.data.next) {
           setValues('url', item.data.next);
@@ -55,22 +56,36 @@ export default function ItemList() {
     }
   };
 
-  const sortData =
-    values.item_list &&
-    values.item_list.sort((a, b) => {
-      const nameA = a.name.toUpperCase();
-      const nameB = b.name.toUpperCase();
-      if (nameA < nameB) {
-        return -1;
+  const handleItemAddCompare = async e => {
+    const a = values.item_compare;
+    await getPokemonDetail(e).then(item => {
+      const b = a.find(itemm => itemm.name == item.name);
+      if (b) {
+        //
+      } else {
+        setValues('item_compare', [...values.item_compare, item]);
+        navigation.goBack();
       }
-      if (nameA > nameB) {
-        return 1;
-      }
-      return 0;
     });
+  };
+
+  // === SORT ALPHABET ===
+  // const sortData =
+  //   values.item_list &&
+  //   values.item_list.sort((a, b) => {
+  //     const nameA = a.name.toUpperCase();
+  //     const nameB = b.name.toUpperCase();
+  //     if (nameA < nameB) {
+  //       return -1;
+  //     }
+  //     if (nameA > nameB) {
+  //       return 1;
+  //     }
+  //     return 0;
+  //   });
 
   useEffect(() => {
-    getData();
+    getPokemonData();
   }, []);
 
   return (
@@ -79,12 +94,18 @@ export default function ItemList() {
         {values.item_list &&
           values.item_list.map((item, index) => (
             <Pressable
-              onPress={() => navigation.navigate('Detail', item)}
+              onPress={() => {
+                if (props.compare) {
+                  handleItemAddCompare(item);
+                } else {
+                  navigation.navigate('Detail', item);
+                }
+              }}
               className="basis-1/2"
               key={index}>
               <View className="pb-5 border-hairline border-black/50">
                 <Images data={item.url} />
-                <Text className="capitalize text-center text-lg font-semibold">
+                <Text className="capitalize text-center text-lg font-medium">
                   {item.name}
                 </Text>
               </View>
